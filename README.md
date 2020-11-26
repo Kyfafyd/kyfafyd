@@ -1,4 +1,11 @@
-### Hi there 👋
+<img src="https://github-readme-stats.vercel.app/api?username=kyfafyd&count_private=true&show_icons=true&layout=compact&hide=prs&hide_title=true" height="120"> <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=kyfafyd&layout=compact&exclude_repo=HDL-ZJU&hide_title=true&langs_count=4" height="120">
+
+Hi! Here is **Zhao Wang**, a senior undergraduate student from [Zhejiang University](http://www.zju.edu.cn/english/) majoring in Electronic Engineering. 
+I'm interested in machine learning and medical imaging topics.
+You can learn more about me from my **[personal website](http://kyfafyd.wang/)** and contact via **[email](mailto:kyfafyd@zju.edu.cn)**.
+
+BTW, my PhD life will start from 2021 fall at [The Chinese University of Hong Kong](http://www.cuhk.edu.hk/), don't hesitate to get in touch if you can go along!
+
 
 <!--
 **Kyfafyd/kyfafyd** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
