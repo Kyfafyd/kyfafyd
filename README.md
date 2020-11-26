@@ -4,7 +4,8 @@ Hi! Here is **Zhao Wang**, a senior undergraduate student from [Zhejiang Univers
 I'm interested in machine learning and medical imaging topics.
 You can learn more about me from my **[personal website](http://kyfafyd.wang/)** and contact via **[email](mailto:kyfafyd@zju.edu.cn)**.
 
-BTW, my PhD life will start from 2021 fall at [The Chinese University of Hong Kong](http://www.cuhk.edu.hk/), don't hesitate to get in touch if you can go along!
+<!--BTW, my PhD life will start from 2021 fall at [The Chinese University of Hong Kong](http://www.cuhk.edu.hk/), don't hesitate to get in touch if you can go along! 
+-->
 
 
 <!--
