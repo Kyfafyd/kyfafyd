@@ -2,7 +2,7 @@
 
 Hi! Here is **Zhao Wang**, a senior undergraduate student from [Zhejiang University](http://www.zju.edu.cn/english/) majoring in Electronic Engineering. 
 I'm interested in machine learning and medical imaging topics.
-You can learn more about me from my **[personal website](www.cse.cuhk.edu.hk/~zwang21)** and contact via **[email](mailto:kyfafyd@zju.edu.cn)**.
+You can learn more about me from my **[personal website](http://www.cse.cuhk.edu.hk/~zwang21)** and contact via **[email](mailto:kyfafyd@zju.edu.cn)**.
 
 ![Visitors](https://visitor-badge.laobi.icu/badge?page_id=Kyfafyd) 
 <!--BTW, my PhD life will start from 2021 fall at [The Chinese University of Hong Kong](http://www.cuhk.edu.hk/), don't hesitate to get in touch if you can go along! 
