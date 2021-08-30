@@ -1,25 +1,7 @@
 <img src="https://github-readme-stats.vercel.app/api?username=kyfafyd&count_private=true&show_icons=true&layout=compact&hide=prs&hide_title=true" height="120"> <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=kyfafyd&layout=compact&exclude_repo=HDL-ZJU&hide_title=true&langs_count=4" height="120">
 
-Hi! Here is **Zhao Wang**, a senior undergraduate student from [Zhejiang University](http://www.zju.edu.cn/english/) majoring in Electronic Engineering. 
-I'm interested in machine learning and medical imaging topics.
+Hi! Here is **Zhao Wang**, 1st year Ph.D. student in the [Department of Computer Science and Engineering](http://www.cse.cuhk.edu.hk/), [The Chinese University of Hong Kong](http://www.cuhk.edu.hk/). 
+I'm interested in computer vision and surgical robotics.
 You can learn more about me from my **[personal website](http://www.cse.cuhk.edu.hk/~zwang21)** and contact via **[email](mailto:kyfafyd@zju.edu.cn)**.
 
 ![Visitors](https://visitor-badge.laobi.icu/badge?page_id=Kyfafyd) 
-<!--BTW, my PhD life will start from 2021 fall at [The Chinese University of Hong Kong](http://www.cuhk.edu.hk/), don't hesitate to get in touch if you can go along! 
--->
-
-
-<!--
-**Kyfafyd/kyfafyd** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
-
-Here are some ideas to get you started:
-
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
