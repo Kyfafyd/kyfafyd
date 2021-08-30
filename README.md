@@ -2,6 +2,6 @@
 
 Hi! Here is **Zhao Wang**, 1st year Ph.D. student in the [Department of Computer Science and Engineering](http://www.cse.cuhk.edu.hk/), [The Chinese University of Hong Kong](http://www.cuhk.edu.hk/). 
 I'm interested in computer vision and surgical robotics.
-You can learn more about me from my **[personal website](http://www.cse.cuhk.edu.hk/~zwang21)** and contact via **[email](mailto:kyfafyd@zju.edu.cn)**.
+You can learn more about me from my **[personal website](http://www.cse.cuhk.edu.hk/~zwang21)**.
 
 ![Visitors](https://visitor-badge.laobi.icu/badge?page_id=Kyfafyd) 
