@@ -2,6 +2,6 @@
 
 Hi! Here is **Zhao Wang**, 1st year Ph.D. student in the [CSE](http://www.cse.cuhk.edu.hk/), [CUHK](http://www.cuhk.edu.hk/). 
 I'm interested in computer vision, machine learning and surgical robotics.
-You can learn more about me from my **[personal website](http://www.cse.cuhk.edu.hk/~zwang21)**.
+You can learn more about me from my **[personal website](http://kyfafyd.wang)**.
 
 ![Visitors](https://visitor-badge.laobi.icu/badge?page_id=Kyfafyd) 
