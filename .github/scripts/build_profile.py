@@ -221,12 +221,17 @@ def citations():
 THEMES = {
     "light": {"text": "#1f2328", "muted": "#59636e", "grid": "#d1d9e0", "stars": "#d4a72c", "citations": "#8250df"},
     "dark": {"text": "#f0f6fc", "muted": "#9198a1", "grid": "#3d444d", "stars": "#e3b341", "citations": "#ab7df8"},
-    # kyfafyd.wang's palette; this variant is inlined on its publications page with a hover readout.
-    "site": {"text": "#494e52", "muted": "#7a8288", "grid": "#dfe3e6", "stars": "#d4a72c", "citations": "#8250df"},
+    # kyfafyd.wang's palette, with citations in its link color; this variant is inlined on its publications page.
+    "site": {"text": "#494e52", "muted": "#7a8288", "grid": "#e1e4e7", "stars": "#dda033", "citations": "#52adc8"},
 }
 FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif"
-WIDTH, HEIGHT = 640, 244
-CHART_LEFT, CHART_RIGHT, CHART_TOP, CHART_BOTTOM = 0, 628, 80, 214
+LAYOUTS = {
+    "readme": {"width": 640, "height": 244, "left": 0, "right": 628, "top": 80, "bottom": 214},
+    # On the website the chart sits in running text like a figure, so the totals label the line ends instead of
+    # heading the chart, and the value axis moves into a left margin.
+    "site": {"width": 760, "height": 228, "left": 40, "right": 628, "top": 12, "bottom": 194},
+}
+END_LABELS = {"stars": "GitHub stars", "citations": "citations"}
 
 
 def star_points(history, times):
@@ -289,6 +294,9 @@ def path(segments):
 
 def render(theme, repos, history, cited, today):
     colors = THEMES[theme]
+    site = theme == "site"
+    layout = LAYOUTS["site" if site else "readme"]
+    left, right, top, bottom = layout["left"], layout["right"], layout["top"], layout["bottom"]
     first_star = min(day for days in history.values() for day in days)
     start = min(date.fromisoformat(first_star), date(int(min(cited["per_year"])), 1, 1)).replace(day=1)
     times = [start + timedelta(days=offset) for offset in range(0, (today - start).days, 7)] + [today]
@@ -298,44 +306,72 @@ def render(theme, repos, history, cited, today):
     span = (today - start).days or 1
     peak = max(points[-1][1] for points in series.values())
     step = nice_step(peak)
-    top = peak * 1.1
+    ceiling = peak * 1.1
 
     def x(day):
-        return CHART_LEFT + (day - start).days / span * (CHART_RIGHT - CHART_LEFT)
+        return left + (day - start).days / span * (right - left)
 
     def y(value):
-        return CHART_BOTTOM - value / top * (CHART_BOTTOM - CHART_TOP)
+        return bottom - value / ceiling * (bottom - top)
 
     grid = []
-    for value in range(step, int(top), step):
-        grid.append(f'<line x1="{CHART_LEFT}" x2="{CHART_RIGHT}" y1="{y(value):.1f}" y2="{y(value):.1f}" stroke="{colors["grid"]}" stroke-dasharray="2 4"/>')
-        grid.append(f'<text x="{CHART_LEFT}" y="{y(value) - 5:.1f}" class="muted small">{value:,}</text>')
-    grid.append(f'<line x1="{CHART_LEFT}" x2="{CHART_RIGHT}" y1="{CHART_BOTTOM}" y2="{CHART_BOTTOM}" stroke="{colors["grid"]}"/>')
+    for value in range(step, int(ceiling), step):
+        grid.append(f'<line x1="{left}" x2="{right}" y1="{y(value):.1f}" y2="{y(value):.1f}" stroke="{colors["grid"]}" stroke-dasharray="2 4"/>')
+        if site:
+            grid.append(f'<text x="{left - 8}" y="{y(value) + 4:.1f}" class="muted small" text-anchor="end">{value:,}</text>')
+        else:
+            grid.append(f'<text x="{left}" y="{y(value) - 5:.1f}" class="muted small">{value:,}</text>')
+    grid.append(f'<line x1="{left}" x2="{right}" y1="{bottom}" y2="{bottom}" stroke="{colors["grid"]}"/>')
     for year in range(start.year + 1, today.year + 1):
         tick = x(date(year, 1, 1))
-        anchor = "start" if tick < CHART_LEFT + 14 else "end" if tick > CHART_RIGHT - 14 else "middle"
-        grid.append(f'<text x="{tick:.1f}" y="{CHART_BOTTOM + 20}" class="muted small" text-anchor="{anchor}">{year}</text>')
+        anchor = "start" if tick < left + 14 else "end" if tick > right - 14 else "middle"
+        grid.append(f'<text x="{tick:.1f}" y="{bottom + 20}" class="muted small" text-anchor="{anchor}">{year}</text>')
 
-    lines, header = [], []
+    lines, labels, ends = [], [], {}
     for index, (name, points) in enumerate(series.items()):
         color = colors[name]
         segments = curve([(x(day), y(value)) for day, value in points])
-        last_x, last_y = segments[-1][-1]
+        end_x, end_y = ends[name] = segments[-1][-1]
         lines.append(f'<path d="{path(segments)}" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>')
-        lines.append(f'<circle cx="{last_x:.1f}" cy="{last_y:.1f}" r="7" fill="{color}" fill-opacity="0.25"/>'
-                     f'<circle cx="{last_x:.1f}" cy="{last_y:.1f}" r="3.5" fill="{color}"/>')
-        left = index * 220
-        header.append(f'<circle cx="{left + 4}" cy="22" r="4" fill="{color}"/>')
-        header.append(f'<text x="{left + 14}" y="32"><tspan class="hero">{totals[name]:,}</tspan><tspan class="unit" dx="6">{name}</tspan></text>')
-        header.append(f'<text x="{left + 14}" y="51" class="muted body">{captions[name]}</text>')
+        if site:
+            lines.append(f'<circle cx="{end_x:.1f}" cy="{end_y:.1f}" r="3" fill="{color}"/>')
+            continue
+        lines.append(f'<circle cx="{end_x:.1f}" cy="{end_y:.1f}" r="7" fill="{color}" fill-opacity="0.25"/>'
+                     f'<circle cx="{end_x:.1f}" cy="{end_y:.1f}" r="3.5" fill="{color}"/>')
+        offset = index * 220
+        labels.append(f'<circle cx="{offset + 4}" cy="22" r="4" fill="{color}"/>')
+        labels.append(f'<text x="{offset + 14}" y="32"><tspan class="hero">{totals[name]:,}</tspan><tspan class="unit" dx="6">{name}</tspan></text>')
+        labels.append(f'<text x="{offset + 14}" y="51" class="muted body">{captions[name]}</text>')
+
+    if site:
+        (upper_y, upper), (lower_y, lower) = sorted((end[1] + 5, name) for name, end in ends.items())
+        # Lines that finish close together would stack their labels on top of each other, so keep them 18px apart.
+        squeeze = 18 - (lower_y - upper_y)
+        if squeeze > 0:
+            upper_y, lower_y = upper_y - squeeze / 2, lower_y + squeeze / 2
+        for name, label_y in ((upper, upper_y), (lower, lower_y)):
+            labels.append(f'<text x="{right + 10}" y="{label_y:.1f}" class="label"><tspan class="value">{totals[name]:,}</tspan>'
+                          f'<tspan class="muted" dx="5">{END_LABELS[name]}</tspan></text>')
+        style = f""".impact text {{ font-family: {FONT}; fill: {colors["text"]}; font-variant-numeric: tabular-nums; }}
+.impact .muted {{ fill: {colors["muted"]}; }}
+.impact .label {{ font-size: 14px; }}
+.impact .value {{ font-weight: 600; }}
+.impact .small {{ font-size: 12px; }}"""
+    else:
+        style = f""".impact text {{ font-family: {FONT}; fill: {colors["text"]}; font-variant-numeric: tabular-nums; }}
+.impact .muted {{ fill: {colors["muted"]}; }}
+.impact .hero {{ font-size: 28px; font-weight: 650; letter-spacing: -0.5px; }}
+.impact .unit {{ font-size: 13px; fill: {colors["muted"]}; }}
+.impact .body {{ font-size: 12px; }}
+.impact .small {{ font-size: 11px; }}"""
 
     metadata = ""
-    if theme == "site":
+    if site:
         cites = dict(series["citations"])
         hover = {
-            "top": CHART_TOP,
-            "bottom": CHART_BOTTOM,
-            "series": [{"name": name, "color": colors[name]} for name in series],
+            "top": top,
+            "bottom": bottom,
+            "series": [{"name": END_LABELS[name], "color": colors[name]} for name in series],
             # Each point: date, x, [stars, citations], [y of stars, y of citations]; citations are null before they start.
             "points": [[day.isoformat(), round(x(day), 1),
                         [stars, round(cites[day]) if day in cites else None],
@@ -345,17 +381,13 @@ def render(theme, repos, history, cited, today):
         metadata = f'<metadata id="impact-series">{json.dumps(hover, separators=(",", ":"))}</metadata>\n'
 
     # Selectors are scoped to the chart so the styles stay put when the website inlines this SVG.
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" class="impact" width="{WIDTH}" height="{HEIGHT}" viewBox="0 0 {WIDTH} {HEIGHT}" role="img">
+    width, height = layout["width"], layout["height"]
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" class="impact" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img">
 <title>{totals["stars"]:,} GitHub stars and {totals["citations"]:,} citations over time</title>
 {metadata}<style>
-.impact text {{ font-family: {FONT}; fill: {colors["text"]}; font-variant-numeric: tabular-nums; }}
-.impact .muted {{ fill: {colors["muted"]}; }}
-.impact .hero {{ font-size: 28px; font-weight: 650; letter-spacing: -0.5px; }}
-.impact .unit {{ font-size: 13px; fill: {colors["muted"]}; }}
-.impact .body {{ font-size: 12px; }}
-.impact .small {{ font-size: 11px; }}
+{style}
 </style>
-{chr(10).join(header)}
+{chr(10).join(labels)}
 {chr(10).join(grid)}
 {chr(10).join(lines)}
 </svg>
