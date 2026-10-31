@@ -1,3 +1,3 @@
-<img src="https://github-readme-stats.vercel.app/api?username=kyfafyd&count_private=true&show_icons=true&layout=compact&hide=prs&hide_title=true" height="120"> <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=kyfafyd&layout=compact&exclude_repo=HDL-ZJU&hide_title=true&langs_count=4" height="120">
+<img src="profile/stats.svg" height="120"> <img src="profile/top-langs.svg" height="120">
 
-![Visitors](https://visitor-badge.laobi.icu/badge?page_id=Kyfafyd) 
+[![Total stars](https://img.shields.io/endpoint?logo=github&url=https%3A%2F%2Fraw.githubusercontent.com%2FKyfafyd%2FKyfafyd%2Fmain%2Fprofile%2Fstars.json)](https://github.com/Kyfafyd/Kyfafyd/blob/main/profile/stars.md) ![Visitors](https://visitor-badge.laobi.icu/badge?page_id=Kyfafyd) 
