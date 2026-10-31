@@ -2,9 +2,10 @@
 
 Stars are counted on public repos the user owns, organization repos they have committed to, and other
 people's repos they have added substantial code to. Writes into profile/:
-  dashboard-light.svg, dashboard-dark.svg  the star dashboard shown in README.md
+  dashboard-light.svg, dashboard-dark.svg  total stars and citations over time, shown in README.md
   stars.md                                 the per-repo breakdown the dashboard links to
   star-history.json                        one date per current star, carried between runs
+  citations.json                           total and per-year citations from the last good Scholar fetch
 """
 import bisect
 import json
@@ -12,8 +13,7 @@ import math
 import os
 import re
 import urllib.request
-from datetime import date, datetime, timedelta, timezone
-from html import escape
+from datetime import date, datetime, timezone
 
 LOGIN = os.environ.get("GITHUB_REPOSITORY_OWNER", "Kyfafyd")
 
@@ -21,10 +21,13 @@ LOGIN = os.environ.get("GITHUB_REPOSITORY_OWNER", "Kyfafyd")
 MIN_ADDITIONS = 100
 # Repos to leave out of the total, written as "owner/name".
 EXCLUDED = set()
-CITATIONS_URL = "https://raw.githubusercontent.com/Kyfafyd/kyfafyd.github.io/main/gs_data_shieldsio.json"
+SCHOLAR_URL = "https://scholar.google.com/citations?user=1kEufdwAAAAJ&hl=en"
+BROWSER = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+           "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
 HISTORY = "profile/star-history.json"
+CITATIONS = "profile/citations.json"
 
-REPO_FIELDS = "nameWithOwner url description stargazerCount forkCount isPrivate owner { __typename login }"
+REPO_FIELDS = "nameWithOwner url stargazerCount forkCount isPrivate owner { __typename login }"
 
 PROFILE = """
 query($login: String!) {
@@ -136,45 +139,56 @@ def star_history(repos, today):
 
 
 def citations():
+    """Total and per-year citations from Google Scholar, keeping the last good copy when Scholar answers with a CAPTCHA."""
     try:
-        with urllib.request.urlopen(CITATIONS_URL, timeout=30) as response:
-            return int(json.load(response)["message"])
-    except (OSError, ValueError, KeyError):
-        return None
-
-
-def project(repo):
-    """Name a repo after the project in its description ("[Venue] Name: ..."), falling back to the repo name."""
-    description = repo["description"] or ""
-    name = re.match(r"(?:\[[^\]]*\]\s*)?([\w.-]+):", description)
-    venue = re.match(r"\[([^\]]+)\]", description)
-    return (name.group(1) if name else repo["nameWithOwner"].split("/")[1],
-            re.sub(r"'20(\d\d)\b", r"'\1", venue.group(1)) if venue else None)
+        request = urllib.request.Request(SCHOLAR_URL, headers={"User-Agent": BROWSER})
+        with urllib.request.urlopen(request, timeout=30) as response:
+            html = response.read().decode("utf-8", "replace")
+        total = int(re.findall(r"gsc_rsb_std[^>]*>([\d,]+)<", html)[0].replace(",", ""))
+        years = re.findall(r'class="gsc_g_t"[^>]*>(\d{4})<', html)
+        bars = re.findall(r'class="gsc_g_a"[^>]*z-index:(\d+)"><span class="gsc_g_al">([\d,]+)<', html)
+        if not bars:
+            raise ValueError("no citation chart on the Scholar page")
+    except (OSError, IndexError, ValueError):
+        with open(CITATIONS) as handle:
+            return json.load(handle)
+    per_year = dict.fromkeys(years, 0)
+    # Bars are numbered from the latest year backwards, and years without citations get no bar.
+    for z_index, count in bars:
+        per_year[years[-int(z_index)]] = int(count.replace(",", ""))
+    data = {"total": total, "per_year": per_year}
+    with open(CITATIONS, "w") as handle:
+        handle.write(json.dumps(data, indent=2) + "\n")
+    return data
 
 
 THEMES = {
-    "light": {"text": "#1f2328", "muted": "#59636e", "grid": "#d1d9e0", "others": "#c9d1d9"},
-    "dark": {"text": "#f0f6fc", "muted": "#9198a1", "grid": "#3d444d", "others": "#4d5560"},
+    "light": {"text": "#1f2328", "muted": "#59636e", "grid": "#d1d9e0", "stars": "#d4a72c", "citations": "#8250df"},
+    "dark": {"text": "#f0f6fc", "muted": "#9198a1", "grid": "#3d444d", "stars": "#e3b341", "citations": "#ab7df8"},
 }
-# Assigned to the named projects from the newest down, so the latest work sits on top in the warmest color.
-PALETTE = ["#f5b544", "#f27a5e", "#d6619e", "#9a6ef0", "#5f86f2"]
 FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif"
-WIDTH, HEIGHT = 880, 370
-CHART_LEFT, CHART_RIGHT, CHART_TOP, CHART_BOTTOM = 0, 600, 118, 330
-LEGEND_LEFT = 648
+WIDTH, HEIGHT = 880, 332
+CHART_LEFT, CHART_RIGHT, CHART_TOP, CHART_BOTTOM = 0, 868, 112, 296
 
 
-def layers(repos, history, named=5):
-    projects = {}
-    for repo in repos:
-        name, venue = project(repo)
-        entry = projects.setdefault(name.lower(), {"name": name, "venue": venue, "dates": []})
-        entry["venue"] = entry["venue"] or venue
-        entry["dates"] += history[repo["nameWithOwner"]]
-    ranked = sorted((p for p in projects.values() if p["dates"]), key=lambda p: -len(p["dates"]))
-    top = sorted(ranked[:named], key=lambda p: min(p["dates"]))
-    others = {"name": "Others", "venue": f"{len(ranked) - len(top)} more projects", "dates": [d for p in ranked[named:] for d in p["dates"]]}
-    return ([others] if others["dates"] else []) + top
+def star_points(history, today):
+    dates = sorted(day for days in history.values() for day in days)
+    start = date.fromisoformat(dates[0]).replace(day=1)
+    months = [date(start.year + (start.month - 1 + i) // 12, (start.month - 1 + i) % 12 + 1, 1)
+              for i in range((today.year - start.year) * 12 + today.month - start.month + 1)]
+    return [(day, bisect.bisect_right(dates, day.isoformat())) for day in months if day < today] + [(today, len(dates))]
+
+
+def citation_points(citations, today):
+    """Cumulative citations at the end of each year; citations from years Scholar leaves off its chart are the starting point."""
+    per_year = citations["per_year"]
+    count = max(citations["total"] - sum(per_year.values()), 0)
+    points = {date(int(min(per_year)), 1, 1): count}
+    for year in sorted(per_year):
+        count += per_year[year]
+        points[min(date(int(year) + 1, 1, 1), today)] = count
+    points.setdefault(today, count)
+    return sorted(points.items())
 
 
 def nice_step(maximum, lines=4):
@@ -199,48 +213,29 @@ def curve(points):
             for (x0, y0), (x1, y1), t0, t1 in zip(points, points[1:], tangents, tangents[1:])]
 
 
-def path(segments, reverse=False):
-    if reverse:
-        segments = [(end, c2, c1, begin) for begin, c1, c2, end in reversed(segments)]
-    return " ".join(["%.1f,%.1f" % segments[0][0]] + ["C" + " ".join("%.1f,%.1f" % point for point in segment[1:]) for segment in segments])
+def path(segments):
+    return " ".join(["M%.1f,%.1f" % segments[0][0]] + ["C" + " ".join("%.1f,%.1f" % point for point in segment[1:]) for segment in segments])
 
 
 def render(theme, repos, history, cited, today):
     colors = THEMES[theme]
-    stack = layers(repos, history)
-    for index, layer in enumerate(reversed(stack)):
-        layer["color"] = PALETTE[index] if layer["name"] != "Others" else colors["others"]
-
-    all_dates = sorted(d for layer in stack for d in layer["dates"])
-    start = date.fromisoformat(all_dates[0]).replace(day=1)
-    months = [date(start.year + (start.month - 1 + i) // 12, (start.month - 1 + i) % 12 + 1, 1)
-              for i in range((today.year - start.year) * 12 + today.month - start.month + 1)]
-    times = [m for m in months if m < today] + [today]
+    series = {"stars": star_points(history, today), "citations": citation_points(cited, today)}
+    totals = {"stars": series["stars"][-1][1], "citations": cited["total"]}
+    captions = {"stars": f"across {len(repos)} repositories", "citations": "on Google Scholar"}
+    start = min(points[0][0] for points in series.values())
     span = (today - start).days or 1
+    peak = max(points[-1][1] for points in series.values())
+    step = nice_step(peak)
+    top = peak * 1.1
 
     def x(day):
         return CHART_LEFT + (day - start).days / span * (CHART_RIGHT - CHART_LEFT)
 
-    total = len(all_dates)
-    step = nice_step(total)
-    top_value = step * (int(total * 1.12 // step) + 1)
-
     def y(value):
-        return CHART_BOTTOM - value / top_value * (CHART_BOTTOM - CHART_TOP)
-
-    counts = [0] * len(times)
-    lower = curve([(x(t), y(0)) for t in times])
-    areas = []
-    for layer in stack:
-        dates = sorted(layer["dates"])
-        counts = [count + bisect.bisect_right(dates, t.isoformat()) for count, t in zip(counts, times)]
-        upper = curve([(x(t), y(count)) for t, count in zip(times, counts)])
-        areas.append(f'<path d="M{path(upper)} L{path(lower, reverse=True)} Z" fill="{layer["color"]}" fill-opacity="0.88"/>')
-        areas.append(f'<path d="M{path(upper)}" fill="none" stroke="{layer["color"]}" stroke-width="1.6"/>')
-        lower = upper
+        return CHART_BOTTOM - value / top * (CHART_BOTTOM - CHART_TOP)
 
     grid = []
-    for value in range(step, top_value, step):
+    for value in range(step, int(top), step):
         grid.append(f'<line x1="{CHART_LEFT}" x2="{CHART_RIGHT}" y1="{y(value):.1f}" y2="{y(value):.1f}" stroke="{colors["grid"]}" stroke-dasharray="2 4"/>')
         grid.append(f'<text x="{CHART_LEFT}" y="{y(value) - 6:.1f}" class="muted small">{value:,}</text>')
     grid.append(f'<line x1="{CHART_LEFT}" x2="{CHART_RIGHT}" y1="{CHART_BOTTOM}" y2="{CHART_BOTTOM}" stroke="{colors["grid"]}"/>')
@@ -249,51 +244,32 @@ def render(theme, repos, history, cited, today):
         anchor = "start" if tick < CHART_LEFT + 16 else "end" if tick > CHART_RIGHT - 16 else "middle"
         grid.append(f'<text x="{tick:.1f}" y="{CHART_BOTTOM + 24}" class="muted small" text-anchor="{anchor}">{year}</text>')
 
-    end_x, end_y = x(today), y(total)
-    marker = (f'<circle cx="{end_x:.1f}" cy="{end_y:.1f}" r="4" fill="{stack[-1]["color"]}"/>'
-              f'<circle cx="{end_x:.1f}" cy="{end_y:.1f}" r="8" fill="{stack[-1]["color"]}" fill-opacity="0.25"/>')
-
-    legend = []
-    row_height = 36
-    legend_top = (CHART_TOP + CHART_BOTTOM) / 2 - row_height * len(stack) / 2 + 12
-    for row, layer in enumerate(reversed(stack)):
-        row_y = legend_top + row * row_height
-        legend.append(f'<rect x="{LEGEND_LEFT}" y="{row_y - 10:.1f}" width="10" height="10" rx="3" fill="{layer["color"]}"/>')
-        legend.append(f'<text x="{LEGEND_LEFT + 20}" y="{row_y:.1f}" class="label">{escape(layer["name"])}</text>')
-        legend.append(f'<text x="{WIDTH}" y="{row_y:.1f}" class="label strong" text-anchor="end">{len(layer["dates"]):,}</text>')
-        if layer["venue"]:
-            legend.append(f'<text x="{LEGEND_LEFT + 20}" y="{row_y + 16:.1f}" class="muted small">{escape(layer["venue"])}</text>')
-
-    forks = sum(repo["forkCount"] for repo in repos)
-    recent = len(all_dates) - bisect.bisect_right(all_dates, (today - timedelta(days=365)).isoformat())
-    stats = [(f"+{recent:,}", "past year"), (f"{forks:,}", "forks")] + ([(f"{cited:,}", "citations")] if cited else [])
-    header = [
-        f'<text x="0" y="48"><tspan class="hero">{total:,}</tspan><tspan class="unit" dx="10">stars</tspan></text>',
-        f'<text x="0" y="78" class="muted body">across {len(repos)} repositories I own or contribute to</text>',
-    ]
-    for index, (value, label) in enumerate(reversed(stats)):
-        column = WIDTH - index * 130
-        header.append(f'<text x="{column}" y="42" class="stat" text-anchor="end">{value}</text>')
-        header.append(f'<text x="{column}" y="66" class="muted small" text-anchor="end">{label}</text>')
+    lines, header = [], []
+    for index, (name, points) in enumerate(series.items()):
+        color = colors[name]
+        segments = curve([(x(day), y(value)) for day, value in points])
+        last_x, last_y = segments[-1][-1]
+        lines.append(f'<path d="{path(segments)}" fill="none" stroke="{color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>')
+        lines.append(f'<circle cx="{last_x:.1f}" cy="{last_y:.1f}" r="8" fill="{color}" fill-opacity="0.25"/>'
+                     f'<circle cx="{last_x:.1f}" cy="{last_y:.1f}" r="4" fill="{color}"/>')
+        left = index * 300
+        header.append(f'<circle cx="{left + 6}" cy="32" r="5" fill="{color}"/>')
+        header.append(f'<text x="{left + 20}" y="48"><tspan class="hero">{totals[name]:,}</tspan><tspan class="unit" dx="8">{name}</tspan></text>')
+        header.append(f'<text x="{left + 20}" y="74" class="muted body">{captions[name]}</text>')
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}" height="{HEIGHT}" viewBox="0 0 {WIDTH} {HEIGHT}" role="img">
-<title>{total:,} GitHub stars across {len(repos)} repositories</title>
+<title>{totals["stars"]:,} GitHub stars and {totals["citations"]:,} citations over time</title>
 <style>
 text {{ font-family: {FONT}; fill: {colors["text"]}; font-variant-numeric: tabular-nums; }}
 .muted {{ fill: {colors["muted"]}; }}
 .hero {{ font-size: 46px; font-weight: 650; letter-spacing: -1px; }}
 .unit {{ font-size: 18px; fill: {colors["muted"]}; }}
-.stat {{ font-size: 26px; font-weight: 600; }}
 .body {{ font-size: 14px; }}
-.label {{ font-size: 13px; }}
-.strong {{ font-weight: 600; }}
 .small {{ font-size: 11px; }}
 </style>
 {chr(10).join(header)}
 {chr(10).join(grid)}
-{chr(10).join(areas)}
-{marker}
-{chr(10).join(legend)}
+{chr(10).join(lines)}
 </svg>
 """
 
@@ -323,10 +299,11 @@ def write_outputs(repos, history, cited, today):
 def main():
     today = datetime.now(timezone.utc).date()
     repos = counted_repos()
-    ranked, total = write_outputs(repos, star_history(repos, today), citations(), today)
+    cited = citations()
+    ranked, total = write_outputs(repos, star_history(repos, today), cited, today)
     for repo in ranked:
         print(f"{repo['stargazerCount']:>6}  {repo['nameWithOwner']}")
-    print(f"{total:>6}  total")
+    print(f"{total:>6}  stars total\n{cited['total']:>6}  citations")
 
 
 if __name__ == "__main__":
