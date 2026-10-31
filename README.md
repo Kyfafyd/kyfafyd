@@ -7,12 +7,14 @@ Embodied AI · whole-body intelligence · interactive embodied models · multimo
 
 [Homepage](https://kyfafyd.wang) &nbsp;·&nbsp; [Google Scholar](https://scholar.google.com/citations?user=1kEufdwAAAAJ) &nbsp;·&nbsp; [LinkedIn](https://www.linkedin.com/in/kyfafyd) &nbsp;·&nbsp; [X](https://x.com/kyfafyd)
 
-</div>
+<br>
 
-> [!IMPORTANT]
-> **We're hiring!** Our team is looking for self-motivated **full-time researchers and engineers** (all levels) as well as **interns** to work on the topics above. Interested? Send your CV to dylan@limxdynamics.com.
+<a href="mailto:dylan@limxdynamics.com"><img alt="We're hiring" src="https://img.shields.io/badge/We%27re_hiring-8250df?style=for-the-badge"></a>
 
-<div align="center">
+Our team is looking for **full-time researchers and engineers** (all levels) and **interns** in embodied AI.<br>
+Interested? Send your CV to dylan@limxdynamics.com.
+
+<br>
 
 <a href="https://github.com/Kyfafyd/kyfafyd/blob/main/profile/stars.md">
   <picture>
