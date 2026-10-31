@@ -2,7 +2,7 @@
 
 ### Hi, I'm Zhao (Dylan) Wang
 
-Head of Foundation Model at [LimX Dynamics](https://www.limxdynamics.com/en), building System 0 and System 1 for humanoid robots.<br>
+Head of Foundation Model at [LimX Dynamics](https://www.limxdynamics.com/en), building System&nbsp;0 and System&nbsp;1 for humanoid robots.<br>
 Embodied AI · whole-body intelligence · interactive embodied models · multimodal motion synthesis
 
 [Homepage](https://kyfafyd.wang) &nbsp;·&nbsp; [Google Scholar](https://scholar.google.com/citations?user=1kEufdwAAAAJ) &nbsp;·&nbsp; [LinkedIn](https://www.linkedin.com/in/kyfafyd) &nbsp;·&nbsp; [X](https://x.com/kyfafyd)
