@@ -8,7 +8,7 @@ on:
     branches: [main]
     paths:
       - .github/workflows/update-profile.yml
-      - .github/scripts/count_stars.py
+      - .github/scripts/build_profile.py
 
 permissions:
   contents: write
@@ -19,27 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Stars are left off this card because it only counts repos the user owns; count_stars.py covers them.
-      - name: Generate stats card
-        uses: stats-organization/github-readme-stats-action@v2
-        with:
-          card: stats
-          options: username=${{ github.repository_owner }}&show_icons=true&hide=prs,stars&hide_title=true
-          path: profile/stats.svg
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fail_on_error: true
-
-      - name: Generate top languages card
-        uses: stats-organization/github-readme-stats-action@v2
-        with:
-          card: top-langs
-          options: username=${{ github.repository_owner }}&layout=compact&exclude_repo=HDL-ZJU&hide_title=true&langs_count=4
-          path: profile/top-langs.svg
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fail_on_error: true
-
-      - name: Count stars
-        run: python3 .github/scripts/count_stars.py
+      - name: Build profile assets
+        run: python3 .github/scripts/build_profile.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
