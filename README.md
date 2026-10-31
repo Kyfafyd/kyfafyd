@@ -19,7 +19,7 @@ Interested? Send your CV to dylan@limxdynamics.com.
 <a href="https://github.com/Kyfafyd/kyfafyd/blob/main/profile/stars.md">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="profile/dashboard-dark.svg">
-    <img alt="Total GitHub stars and Google Scholar citations over time" src="profile/dashboard-light.svg" width="100%">
+    <img alt="Total GitHub stars and Google Scholar citations over time" src="profile/dashboard-light.svg" width="640">
   </picture>
 </a>
 
