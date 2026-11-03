@@ -1,4 +1,4 @@
-# 876 stars across 19 repositories
+# 877 stars across 19 repositories
 
 Public repositories @Kyfafyd owns, organization repositories @Kyfafyd has committed to, and other repositories @Kyfafyd has added at least 100 lines of code to.
 
@@ -8,7 +8,7 @@ Public repositories @Kyfafyd owns, organization repositories @Kyfafyd has commit
 | [openmedlab/Endo-FM](https://github.com/openmedlab/Endo-FM) | 220 | 7 |
 | [HKU-MedAI/EndoGS](https://github.com/HKU-MedAI/EndoGS) | 151 | 7 |
 | [med-air/Contrastive-COVIDNet](https://github.com/med-air/Contrastive-COVIDNet) | 53 | 15 |
-| [Holistic-Motion2D/Tender](https://github.com/Holistic-Motion2D/Tender) | 50 | 0 |
+| [Holistic-Motion2D/Tender](https://github.com/Holistic-Motion2D/Tender) | 51 | 0 |
 | [AnyCharV/AnyCharV](https://github.com/AnyCharV/AnyCharV) | 42 | 2 |
 | [med-air/EndoFM-LV](https://github.com/med-air/EndoFM-LV) | 34 | 6 |
 | [lunanbit/FedUL](https://github.com/lunanbit/FedUL) | 33 | 5 |
